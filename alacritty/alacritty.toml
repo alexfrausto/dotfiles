@@ -9,13 +9,16 @@ family = "VictorMono Nerd Font"
 style = "Regular"
 
 [window]
-opacity = 0.95
+opacity = 0.9
 decorations = "none"
 dynamic_padding = true
 
 [window.padding]
 x = 0
 y = 0
+
+[mouse]
+hide_when_typing = true
 
 [general]
 import = ["dracula.toml"]
