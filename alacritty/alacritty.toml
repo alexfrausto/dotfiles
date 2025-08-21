@@ -1,0 +1,31 @@
+[env]
+TERM = "screen-256color"
+
+[font]
+size = 13
+
+[font.normal]
+family = "VictorMono Nerd Font"
+style = "Regular"
+
+[window]
+opacity = 0.95
+decorations = "none"
+dynamic_padding = true
+
+[window.padding]
+x = 0
+y = 0
+
+[general]
+import = ["dracula.toml"]
+
+[[keyboard.bindings]]
+action = "Paste"
+key = "V"
+mods = "Command"
+
+[[keyboard.bindings]]
+action = "Copy"
+key = "C"
+mods = "Command"
