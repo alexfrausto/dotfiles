@@ -76,34 +76,8 @@ bindkey '^f' finder
 
 zstyle -e ':completion:*:(ssh|scp|sftp|rsh|rsync):hosts' hosts 'reply=(${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })'
 
-if command -v tmux >/dev/null 2>&1; then
-  [ -z "$TMUX" ] && (tmux attach || tmux new -s main)
-fi
-
 setopt EXTENDED_GLOB
 setopt NO_BEEP
-
-cursor_block='\e[2 q'
-cursor_beam='\e[6 q'
-
-function zle-keymap-select {
-  if [[ $KEYMAP == vicmd ]]; then
-    echo -ne "$cursor_block"
-  else
-    echo -ne "$cursor_beam"
-  fi
-}
-zle -N zle-keymap-select
-
-function zle-line-init {
-  echo -ne "$cursor_beam"
-}
-zle -N zle-line-init
-
-function zle-line-finish {
-  echo -ne "$cursor_beam"
-}
-zle -N zle-line-finish
 
 bindkey -v
 autoload -Uz edit-command-line

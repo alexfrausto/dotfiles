@@ -15,8 +15,6 @@ if not (vim.uv or vim.loop).fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
--- Theme
-
 -- OPTIONS
 local o = vim.o
 o.termguicolors = true
@@ -71,6 +69,7 @@ map('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 map('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 map('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 map('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+map('n', ';w', ':w<CR>')
 
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking text',
@@ -80,19 +79,10 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
-map('n', ';w', ':w<CR>')
-
 -- Theme
-vim.opt.termguicolors = true
 vim.cmd 'syntax enable'
 vim.g.dracula_colorterm = 0
 vim.cmd 'colorscheme dracula_pro'
-local comment_hl = vim.api.nvim_get_hl(0, { name = 'Comment' })
-vim.api.nvim_set_hl(0, 'Comment', {
-  fg = comment_hl.fg,
-  bg = comment_hl.bg,
-  italic = true,
-})
 
 -- PLUGINS
 require('lazy').setup {
@@ -102,7 +92,10 @@ require('lazy').setup {
     {
       'nvim-telescope/telescope.nvim',
       event = 'VimEnter',
-      dependencies = { 'nvim-lua/plenary.nvim' },
+      dependencies = {
+        'nvim-lua/plenary.nvim',
+        'nvim-telescope/telescope-ui-select.nvim',
+      },
       config = function()
         require('telescope').setup {
           defaults = {
@@ -130,7 +123,14 @@ require('lazy').setup {
               end,
             },
           },
+          extensions = {
+            ['ui-select'] = {
+              require('telescope.themes').get_dropdown {},
+            },
+          },
         }
+        require('telescope').load_extension 'ui-select'
+
         local builtin = require 'telescope.builtin'
         vim.keymap.set('n', '<leader><leader>', builtin.find_files, { desc = '[F]ind [F]iles' })
         vim.keymap.set('n', '<leader>/', builtin.live_grep, { desc = '[F]ind by [G]rep' })
@@ -287,22 +287,6 @@ require('lazy').setup {
           },
         }
 
-        local function get_fg(group)
-          local hl = vim.api.nvim_get_hl(0, { name = group })
-          if hl and hl.fg then
-            return string.format('#%06x', hl.fg)
-          end
-          return nil
-        end
-
-        local comment_fg = get_fg 'Comment'
-        local error_fg = get_fg 'DiagnosticError' or get_fg 'ErrorMsg'
-        local hint_fg = get_fg 'DiagnosticHint' or get_fg 'String'
-
-        vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextWarn', { fg = comment_fg or '#858585', bg = 'NONE' })
-        vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextError', { fg = error_fg or '#a06767', bg = 'NONE' })
-        vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextHint', { fg = hint_fg or '#55aa55', bg = 'NONE' })
-
         local capabilities = require('blink.cmp').get_lsp_capabilities()
 
         local servers = {
@@ -419,13 +403,45 @@ require('lazy').setup {
     -- Flutter tools
     {
       'nvim-flutter/flutter-tools.nvim',
+      lazy = false,
       dependencies = { 'nvim-lua/plenary.nvim' },
       config = function()
         require('flutter-tools').setup {}
+        require('telescope').load_extension 'flutter'
       end,
       keys = {
         { '<leader>fd', ':FlutterDebug<CR>', desc = '[F]lutter [D]ebug' },
+        { '<leader>fr', ':FlutterReload<CR>', desc = '[F]lutter [R]eload' },
+        { '<leader>fR', ':FlutterRestart<CR>', desc = '[F]lutter [R]estart' },
+        { '<leader>ff', ':Telescope flutter commands<CR>', desc = '[F]lutter [P]roject commands' },
       },
+    },
+    {
+      'rcarriga/nvim-dap-ui',
+      dependencies = { 'mfussenegger/nvim-dap', 'nvim-neotest/nvim-nio' },
+      config = function()
+        local dap = require 'dap'
+        local dapui = require 'dapui'
+        dapui.setup {}
+        dap.listeners.after.event_initialized['dapui_config'] = function()
+          dapui.open()
+        end
+        dap.listeners.before.event_terminated['dapui_config'] = function()
+          dapui.close()
+        end
+        dap.listeners.before.event_exited['dapui_config'] = function()
+          dapui.close()
+        end
+
+        map('n', '<leader>dd', dapui.toggle, { desc = '[D]ebug UI' })
+        map('n', '<leader>db', dap.toggle_breakpoint, { desc = '[D]ebug [B]reakpoint' })
+        map('n', '<F5>', dap.continue, { desc = 'Debug [C]ontinue' })
+
+        vim.api.nvim_set_hl(0, 'DapBreakpointColor', { fg = '#ffffff', bg = '#FF5555' })
+        vim.api.nvim_set_hl(0, 'DapStoppedColor', { fg = '#ffffff', bg = '#FFB86C' })
+        vim.fn.sign_define('DapBreakpoint', { text = '?!', texthl = 'DapBreakpointColor', linehl = '', numhl = '' })
+        vim.fn.sign_define('DapStopped', { text = '!!', texthl = 'DapStoppedColor', linehl = 'DapStoppedColor', numhl = '' })
+      end,
     },
 
     -- Laravel tools
