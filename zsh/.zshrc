@@ -1,5 +1,4 @@
 autoload -U colors && colors
-bindkey -v
 
 autoload -Uz vcs_info
 precmd() { vcs_info }
@@ -79,7 +78,5 @@ zstyle -e ':completion:*:(ssh|scp|sftp|rsh|rsync):hosts' hosts 'reply=(${=${${(f
 setopt EXTENDED_GLOB
 setopt NO_BEEP
 
-bindkey -v
-autoload -Uz edit-command-line
-zle -N edit-command-line
-bindkey -M vicmd v edit-command-line
+export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
+export PATH="$HOME/.composer/vendor/bin:$PATH"
