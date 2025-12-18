@@ -164,6 +164,8 @@ require('lazy').setup {
                 detail = not detail
                 if detail then
                   require('oil').set_columns { 'permissions', 'size', 'mtime' }
+                else
+                  require('oil').set_columns {}
                 end
               end,
             },
@@ -493,7 +495,8 @@ require('lazy').setup {
       build = 'make tiktoken',
       config = function()
         require('CopilotChat').setup {
-          resources = 'selection',
+          resources = '',
+          model = 'claude-opus-4.5',
         }
 
         vim.keymap.set('n', '<leader>cc', function()
