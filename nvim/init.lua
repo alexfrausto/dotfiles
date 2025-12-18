@@ -80,14 +80,24 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 })
 
 -- Theme
-vim.cmd 'syntax enable'
-vim.g.dracula_colorterm = 0
-vim.cmd 'colorscheme dracula_pro'
+-- vim.g.dracula_colorterm = 0
+-- vim.cmd 'colorscheme dracula_pro'
 
 -- PLUGINS
 require('lazy').setup {
   checker = { enabled = true },
   spec = {
+    {
+      'dracula/vim',
+      lazy = false,
+      priority = 1000,
+      config = function()
+        vim.cmd 'colorscheme dracula'
+        vim.cmd 'hi Normal guibg=NONE ctermbg=NONE'
+        vim.cmd ':hi statusline guibg=NONE'
+      end,
+    },
+
     -- Fuzzy Finder: Telescope (useful for all projects)
     {
       'nvim-telescope/telescope.nvim',
@@ -169,6 +179,33 @@ require('lazy').setup {
       end,
     },
 
+    {
+      'ThePrimeagen/harpoon',
+      branch = 'harpoon2',
+      dependencies = { 'nvim-lua/plenary.nvim' },
+      config = function()
+        local harpoon = require 'harpoon'
+        harpoon:setup()
+        vim.keymap.set('n', '<leader>H', function()
+          harpoon:list():add()
+        end)
+        vim.keymap.set('n', '<leader>hh', function()
+          harpoon.ui:toggle_quick_menu(harpoon:list())
+        end)
+        vim.keymap.set('n', '<leader>hp', function()
+          harpoon:list():prev()
+        end)
+        vim.keymap.set('n', '<leader>hn', function()
+          harpoon:list():next()
+        end)
+        for i = 1, 5 do
+          vim.keymap.set('n', '<leader>' .. i, function()
+            harpoon:list():select(i)
+          end)
+        end
+      end,
+    },
+
     -- Git
     {
       'lewis6991/gitsigns.nvim',
@@ -198,6 +235,8 @@ require('lazy').setup {
       },
       keys = {
         { '<leader>gg', '<cmd>LazyGit<cr>', desc = '[G]it' },
+        { '<leader>gc', '<cmd>LazyGitFilter<cr>', desc = '[G]it [C]ommits' },
+        { '<leader>gf', '<cmd>LazyGitFilterCurrentFile<cr>', desc = '[G]it [F]ile' },
       },
     },
 
@@ -215,13 +254,13 @@ require('lazy').setup {
       event = { 'BufWritePre' },
       opts = {
         notify_on_error = false,
-        format_on_save = function(bufnr)
+        format_on_save = function()
           return { timeout_ms = 500, lsp_format = 'fallback' }
         end,
         formatters_by_ft = {
           lua = { 'stylua' },
           php = { 'pint' },
-          blade = { 'blade-formatter' },
+          blade = { 'blade-formatter', 'pint' },
         },
       },
       keys = {
@@ -339,6 +378,25 @@ require('lazy').setup {
         },
         { 'zbirenbaum/copilot.lua' },
         { 'giuxtaposition/blink-cmp-copilot' },
+        {
+          'saghen/blink.compat',
+          version = '2.*',
+          lazy = true,
+          opts = {},
+        },
+        {
+          'MattiasMTS/cmp-dbee',
+          dependencies = {
+            { 'kndndrj/nvim-dbee' },
+          },
+          ft = 'sql',
+          opts = {},
+        },
+        laravel = {
+          name = 'laravel',
+          module = 'blink.compat.source',
+          score_offset = 95,
+        },
       },
       opts = {
         fuzzy = {
@@ -358,6 +416,9 @@ require('lazy').setup {
         },
         sources = {
           default = { 'copilot', 'lsp', 'path', 'snippets', 'buffer' },
+          per_filetype = {
+            sql = { 'snippets', 'dadbod', 'copilot', 'lsp', 'path', 'buffer' },
+          },
           providers = {
             copilot = {
               name = 'copilot',
@@ -365,12 +426,37 @@ require('lazy').setup {
               score_offset = 100,
               async = true,
             },
+            dadbod = { name = 'Dadbod', module = 'vim_dadbod_completion.blink' },
+            laravel = {
+              name = 'laravel',
+              module = 'blink.compat.source',
+              score_offset = 95,
+            },
           },
         },
         snippets = { preset = 'luasnip' },
         fuzzy = { implementation = 'lua' },
         cmdline = { enabled = true },
         signature = { enabled = true },
+      },
+    },
+
+    -- Troubles
+    {
+      'folke/trouble.nvim',
+      opts = {},
+      cmd = 'Trouble',
+      keys = {
+        {
+          '<leader>xx',
+          '<cmd>Trouble diagnostics toggle<cr>',
+          desc = 'Diagnostics (Trouble)',
+        },
+        {
+          '<leader>xX',
+          '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
+          desc = 'Buffer Diagnostics (Trouble)',
+        },
       },
     },
 
@@ -397,6 +483,26 @@ require('lazy').setup {
           },
           panel = { enabled = false },
         }
+      end,
+    },
+    {
+      'CopilotC-Nvim/CopilotChat.nvim',
+      dependencies = {
+        { 'nvim-lua/plenary.nvim', branch = 'master' },
+      },
+      build = 'make tiktoken',
+      config = function()
+        require('CopilotChat').setup {
+          resources = 'selection',
+        }
+
+        vim.keymap.set('n', '<leader>cc', function()
+          require('CopilotChat').toggle()
+        end)
+
+        vim.keymap.set({ 'n', 'v' }, '<leader>cp', function()
+          require('CopilotChat').select_prompt()
+        end)
       end,
     },
 
@@ -433,7 +539,7 @@ require('lazy').setup {
           dapui.close()
         end
 
-        map('n', '<leader>dd', dapui.toggle, { desc = '[D]ebug UI' })
+        map('n', '<leader>du', dapui.toggle, { desc = '[D]ebug [U]I' })
         map('n', '<leader>db', dap.toggle_breakpoint, { desc = '[D]ebug [B]reakpoint' })
         map('n', '<F5>', dap.continue, { desc = 'Debug [C]ontinue' })
 
@@ -449,12 +555,25 @@ require('lazy').setup {
       'adalessa/laravel.nvim',
       dependencies = {
         'tpope/vim-dotenv',
-        'nvim-telescope/telescope.nvim',
+        'nvim-lua/plenary.nvim',
         'MunifTanjim/nui.nvim',
-        'kevinhwang91/promise-async',
+        'nvim-neotest/nvim-nio',
       },
       cmd = { 'Laravel' },
-      keys = { { '<leader>la', ':Laravel artisan<CR>', '[L]aravel [A]rtisan' } },
+      keys = {
+        {
+          '<leader>ll',
+          function()
+            Laravel.pickers.laravel()
+          end,
+        },
+        {
+          '<leader>la',
+          function()
+            Laravel.pickers.artisan()
+          end,
+        },
+      },
       event = { 'VeryLazy' },
       config = true,
     },
@@ -499,13 +618,19 @@ require('lazy').setup {
       end,
     },
     {
-      'brenoprata10/nvim-highlight-colors',
+      'catgoose/nvim-colorizer.lua',
+      event = 'BufReadPre',
       opts = {
-        render = 'virtual',
-        virtual_symbol_position = 'eol',
+        user_default_options = {
+          mode = 'virtualtext',
+          tailwind = 'both',
+          tailwind_opts = {
+            update_names = true,
+          },
+          hsl_fn = true,
+        },
       },
     },
-
     -- Persist session
     {
       'Shatur/neovim-session-manager',
@@ -573,6 +698,22 @@ require('lazy').setup {
           context = -1,
           treesitter = true,
         }
+      end,
+    },
+    {
+      'kristijanhusak/vim-dadbod-ui',
+      dependencies = {
+        { 'tpope/vim-dadbod', lazy = true },
+        { 'kristijanhusak/vim-dadbod-completion', ft = { 'sql', 'mysql', 'plsql' }, lazy = true },
+      },
+      cmd = {
+        'DBUI',
+        'DBUIToggle',
+        'DBUIAddConnection',
+        'DBUIFindBuffer',
+      },
+      init = function()
+        vim.keymap.set('n', '<leader>dd', '<cmd>DBUIToggle<CR>')
       end,
     },
   },
