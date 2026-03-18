@@ -73,6 +73,19 @@ finder() { open . }
 zle -N finder
 bindkey '^f' finder
 
+alias nvimrc='nvim ~/.config/nvim/init.lua'
+alias zshrc='nvim ~/.zshrc'
+
+vf() {
+  local file=$(fzf --preview 'cat {}' --preview-window=right:50%)
+  [ -n "$file" ] && nvim "$file"
+}
+
+cdf() {
+  local dir=$(find ${1:-.} -path '*/\.*' -prune -o -type d -print 2> /dev/null | fzf +m)
+  [ -n "$dir" ] && cd "$dir"
+}
+
 zstyle -e ':completion:*:(ssh|scp|sftp|rsh|rsync):hosts' hosts 'reply=(${=${${(f)"$(cat {/etc/ssh_,~/.ssh/known_}hosts(|2)(N) /dev/null)"}%%[# ]*}//,/ })'
 
 setopt EXTENDED_GLOB
@@ -80,3 +93,7 @@ setopt NO_BEEP
 
 export PATH="/opt/homebrew/opt/postgresql@17/bin:$PATH"
 export PATH="$HOME/.composer/vendor/bin:$PATH"
+
+export NVM_DIR="$HOME/.nvm"
+  [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"
+  [ -s "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm" ] && \. "/opt/homebrew/opt/nvm/etc/bash_completion.d/nvm"

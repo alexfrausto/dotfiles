@@ -1,5 +1,5 @@
 [env]
-TERM = "screen-256color"
+TERM = "alacritty"
 
 [font]
 size = 13
@@ -8,10 +8,22 @@ size = 13
 family = "VictorMono Nerd Font Mono"
 style = "Regular"
 
+[font.bold]
+family = "VictorMono Nerd Font Mono"
+style = "Bold"
+
+[font.italic]
+family = "VictorMono Nerd Font Mono"
+style = "Italic"
+
+[font.bold_italic]
+family = "VictorMono Nerd Font Mono"
+style = "Bold Italic"
+
 [window]
-opacity = 1
 decorations = "none"
 dynamic_padding = true
+option_as_alt = "Both"
 
 [window.padding]
 x = 0
