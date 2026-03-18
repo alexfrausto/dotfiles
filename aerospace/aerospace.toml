@@ -117,7 +117,7 @@ run = ['move-node-to-workspace 6']
 
 [[on-window-detected]]
 if.app-id = 'com.google.android.emulator'
-run = ['layout floating']:w
+run = ['layout floating']
 
 [[on-window-detected]]
 if.app-id = 'com.apple.systempreferences'
